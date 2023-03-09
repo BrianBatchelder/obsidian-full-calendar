@@ -265,7 +265,7 @@ export const AddCalendarSource = ({
 						changeListener={makeChangeListener}
 					/>
 				)}
-				{source.type === "local" && (
+				{(source.type === "local" || source.type === "local_ical") && (
 					<DirectorySelect
 						source={setting}
 						changeListener={makeChangeListener}

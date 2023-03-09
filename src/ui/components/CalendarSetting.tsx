@@ -135,7 +135,7 @@ export const CalendarSettingRow = ({
 			>
 				✕
 			</button>
-			{setting.type === "local" ? (
+			{(setting.type === "local" || setting.type === "local_ical") ? (
 				<DirectorySetting source={setting} />
 			) : setting.type === "dailynote" ? (
 				<HeadingSetting source={setting} />

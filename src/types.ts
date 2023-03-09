@@ -101,6 +101,14 @@ export type LocalCalendarSource = {
 } & CalendarSourceCommon;
 
 /**
+ * Local calendar with events stored as ics files in a directory.
+ */
+export type LocalIcalSource = {
+	type: "local_ical";
+	directory: string;
+} & CalendarSourceCommon;
+
+/**
  * Local calendar with events stored inline in daily notes. Under a certain heading.
  */
 export type DailyNoteCalendarSource = {
@@ -155,6 +163,7 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 
 export type CalendarSource =
 	| LocalCalendarSource
+	| LocalIcalSource
 	| DailyNoteCalendarSource
 	| GoogleCalendarSource
 	| ICalSource

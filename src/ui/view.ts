@@ -10,6 +10,7 @@ import {
 	fromEventApi,
 } from "../fullcalendar_interop";
 import { IcsSource } from "../models/IcsSource";
+import { LocalIcsSource } from "../models/LocalIcsSource";
 import { NoteSource } from "../models/NoteSource";
 import { RemoteSource } from "../models/RemoteSource";
 import { renderOnboarding } from "./onboard";
@@ -59,7 +60,7 @@ export class CalendarView extends ItemView {
 			return;
 		}
 		const source = this.plugin.settings.calendarSources.find(
-			(c) => c.type === "local" && file.path.startsWith(c.directory)
+			(c) => (c.type === "local" || c.type === "local_ical") && file.path.startsWith(c.directory)
 		);
 		const dailyNoteSettings = getDailyNoteSettings();
 		if (source) {
@@ -392,6 +393,21 @@ export class CalendarView extends ItemView {
 					}
 				})
 			);
+		this.plugin.settings.calendarSources
+			.flatMap((s) => (s.type === "local_ical" ? [s] : []))
+			.map((s) => new LocalIcsSource(this.app.vault, s))
+			.map((s) => s.toApi())
+			.forEach((resultPromise) =>
+				resultPromise.then((result) => {
+					if (result instanceof FCError) {
+						new Notice(result.message);
+					} else {
+						this.calendar?.addEventSource(result);
+					}
+				})
+			);
+
+
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
 		);

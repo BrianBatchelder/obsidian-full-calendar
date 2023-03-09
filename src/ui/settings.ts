@@ -94,6 +94,7 @@ export function addCalendarButton(
 					icloud: "iCloud",
 					caldav: "CalDAV",
 					ical: "Remote (.ics format)",
+					local_ical: "Local (.ics format)",
 				}))
 		)
 		.addExtraButton((button) => {
@@ -109,7 +110,7 @@ export function addCalendarButton(
 									plugin.settings.calendarSources
 										.map(
 											(s) =>
-												s.type === "local" &&
+												(s.type === "local" || s.type ==="local_ical") &&
 												s.directory
 										)
 										.filter((s): s is string => !!s)
@@ -255,7 +256,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			},
 			() =>
 				sourceList.state.sources
-					.map((s) => s.type === "local" && s.directory)
+					.map((s) => (s.type === "local" || s.type === "local_ical") && s.directory)
 					.filter((s): s is string => !!s)
 		);
 
