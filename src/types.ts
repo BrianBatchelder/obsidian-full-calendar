@@ -1,5 +1,5 @@
 import { MetadataCache, Vault } from "obsidian";
-
+import { LocalIcsSource } from 'src/models/LocalIcsSource'
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
@@ -106,6 +106,7 @@ export type LocalCalendarSource = {
 export type LocalIcalSource = {
 	type: "local_ical";
 	directory: string;
+	source?: LocalIcsSource;
 } & CalendarSourceCommon;
 
 /**

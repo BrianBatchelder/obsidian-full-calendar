@@ -1,10 +1,10 @@
 import "./overrides.css";
-import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Menu, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventApi } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
-import { FCError, PLUGIN_SLUG } from "../types";
+import { FCError, PLUGIN_SLUG, LocalIcalSource } from "../types";
 import {
 	dateEndpointsToFrontmatter,
 	fromEventApi,
@@ -29,6 +29,7 @@ export class CalendarView extends ItemView {
 	calendar: Calendar | null;
 	plugin: FullCalendarPlugin;
 	cacheCallback: (file: TFile) => void;
+	vaultModifyCallback: (file: TAbstractFile) => void;
 	inSidebar: boolean;
 
 	constructor(
@@ -40,6 +41,7 @@ export class CalendarView extends ItemView {
 		this.plugin = plugin;
 		this.calendar = null;
 		this.cacheCallback = this.onCacheUpdate.bind(this);
+		this.vaultModifyCallback = this.onVaultModify.bind(this);
 		this.inSidebar = inSidebar;
 	}
 
@@ -56,11 +58,12 @@ export class CalendarView extends ItemView {
 	}
 
 	async onCacheUpdate(file: TFile) {
+		console.log("view.ts.onCacheUpdate: file = ", file.path);
 		if (!this.calendar) {
 			return;
 		}
 		const source = this.plugin.settings.calendarSources.find(
-			(c) => (c.type === "local" || c.type === "local_ical") && file.path.startsWith(c.directory)
+			(c) => c.type === "local" && file.path.startsWith(c.directory)
 		);
 		const dailyNoteSettings = getDailyNoteSettings();
 		if (source) {
@@ -395,18 +398,25 @@ export class CalendarView extends ItemView {
 			);
 		this.plugin.settings.calendarSources
 			.flatMap((s) => (s.type === "local_ical" ? [s] : []))
-			.map((s) => new LocalIcsSource(this.app.vault, s))
+			.map((s) => {
+				let newSource = new LocalIcsSource(this.app.vault, s)
+//				if (s instanceof LocalIcalSource) {
+					console.log("Saved ical source", newSource)
+					s.source = newSource
+//				} 
+				return newSource
+			})
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>
 				resultPromise.then((result) => {
 					if (result instanceof FCError) {
 						new Notice(result.message);
 					} else {
+						console.log("Type of result:", typeof result);
 						this.calendar?.addEventSource(result);
 					}
 				})
 			);
-
 
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
@@ -442,6 +452,30 @@ export class CalendarView extends ItemView {
 				}
 			})
 		);
+
+		this.registerEvent(
+			this.app.vault.on("modify", this.vaultModifyCallback)	
+		);
+	}
+
+	async onVaultModify(file: TAbstractFile) {
+		console.log("view.ts.onVaultModify: file = ", file.path);
+		if (!this.calendar) {
+			return;
+		}
+		const source = this.plugin.settings.calendarSources.find(
+			(c) => c.type === "local_ical" && file.path.startsWith(c.directory)
+		);
+		
+		if (source) {
+			console.log("view.onVaultModify(): calendar type is Local_Ical");
+			console.log("source: ", source)
+			if (source instanceof LocalIcsSource) {
+				console.log("Getting events")
+				let events = source.getEvents(file, this.plugin.settings.recursiveLocal)
+				console.log("Events:", events)
+			}
+		}
 	}
 
 	onResize(): void {

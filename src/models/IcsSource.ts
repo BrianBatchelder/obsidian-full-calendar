@@ -43,6 +43,7 @@ export class IcsSource extends EventSource {
 		};
 		return {
 			events: async function ({ start, end }) {
+				console.log("IcsSource.toApi(): Getting events between", start, "and end:", end)
 				const ical = await getExpander();
 				if (ical instanceof FCError) {
 					throw new Error("Could not get calendar: " + ical.message);

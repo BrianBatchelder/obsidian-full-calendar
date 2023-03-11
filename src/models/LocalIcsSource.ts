@@ -1,59 +1,61 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
-import { TFile, TFolder, Vault } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Vault } from "obsidian";
 import { FCError, LocalIcalSource } from "src/types";
 import { EventSource } from "./EventSource";
 import { getColors } from "./util";
-import { expandICalEventsAll, makeICalExpander } from "vendor/fullcalendar-ical/icalendar";
+import { expandICalEvents, makeICalExpander } from "vendor/fullcalendar-ical/icalendar";
+import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 
 export class LocalIcsSource extends EventSource {
 	info: LocalIcalSource;
 	vault: Vault;
+    // recursive: Boolean;
 
 	constructor(vault: Vault, info: LocalIcalSource) {
 		super();
 		this.vault = vault;
 		this.info = info;
+        this.recursive = false;
 	}
 
+    // REVISIT: Return an EventSourceFunc instead. FullCalendar will call this function whenever it needs new event data. 
+    //   This is triggered when the user clicks prev/next or switches views. 
+    //   I'm betting it also works with calendar.refetchEvents() or eventSource.refetch().
 	async toApi(recursive = false): Promise<EventSourceInput | FCError> {
 		console.log("LocalIcsSource.toApi(",this.info.directory,")")
-		const events = await this.getEventInputsFromPath(recursive);
-		if (events instanceof FCError) {
-            console.log("LocalIcsSource.toApi(",this.info.directory,") - FCError")
-			return events;
-		}
+		// const events = await this.getEventInputsFromPath(recursive);
+		// if (events instanceof FCError) {
+        //     console.log("LocalIcsSource.toApi(",this.info.directory,") - FCError")
+		// 	return events;
+		// }
         console.log("LocalIcsSource.toApi(",this.info.directory,") - Events:", events)
+		// this.recursive = recursive
+		const recurseDirectories = recursive
+		const getExpander = async(): Promise<IcalExpander | FCError> => {
+			console.log(this.info)
+		}
 		return {
-			events: events,
+			//events: events,
+			// events: function(info, successCallback, failureCallback) { },
+			events: async function ({ start, end }) {
+				console.log("LocalIcsSource.toApi(): Getting events between", start, "and end:", end)
+				const ical = await getExpander();
+                console.log("LocalIcsSource.toApi() - Events:", events)
+                if (ical instanceof FCError) {
+                    console.log("LocalIcsSource.toApi() - FCError:", ical)
+                }
+				const events = expandICalEvents(ical, {
+					start,
+					end,
+				});
+				return events;
+			},
             editable: false,
 			...getColors(this.info.color),
 		};
 	}
 
-    // private async getIcalExpander() {
-    //     let expander: IcalExpander | null = null;
-	// 	const getExpander = async (): Promise<IcalExpander | FCError> => {
-	// 		if (expander !== null) {
-	// 			return expander;
-	// 		}
-	// 		try {
-	// 			let text = await request({
-	// 				url: url,
-	// 				method: "GET",
-	// 			});
-	// 			expander = makeICalExpander(text);
-	// 			return expander;
-	// 		} catch (e) {
-	// 			console.error(`Error loading calendar from ${url}`);
-	// 			console.error(e);
-	// 			return new FCError(
-	// 				`There was an error loading a calendar. Check the console for full details.`
-	// 			);
-	// 		}
-    //     }
-    // }
-
-    private async getEventInputsFromPath(
+    async getEventInputsFromPath(
 		recursive?: boolean,
 		path?: string
 	): Promise<EventInput[] | FCError> {
@@ -63,38 +65,55 @@ export class LocalIcsSource extends EventSource {
 		if (!(eventFolder instanceof TFolder)) {
 			return new FCError("Directory");
 		}
-        let events: EventInput = [];
+        let events: EventInput[] = [];
 		for (let file of eventFolder.children) {
+            const childEvents = await this.getEvents(file, recursive);
+            if (childEvents instanceof FCError) {
+                return childEvents;
+            }
+            events.push(...childEvents);
+			// if (file instanceof TFile) {				
+			// 	if (file.extension !== "ics") {
+            //         console.log("LocalIcsSource.getEventInputsFromPath(): File:", file.name, "is not an ics file.")
+            //         continue
+            //     }
+            //     let fileContents = await this.vault.cachedRead(file)
+
+            //     let expander = makeICalExpander(fileContents);
+            //     let iCalEvents = expandICalEventsAll(expander);
+            //     for (let event of iCalEvents) {
+            //         console.log("LocalIcsSource.getEventInputsFromPath(): event: ", event, "event title:", event.title, "event idForCalendar:", event.identifier, "type of event:", typeof event)
+            //         events.push(event)
+            //     }
+			// } else if (recursive) {
+			// 	const childEvents = await this.getEventInputsFromPath(
+			// 		recursive,
+			// 		file.path
+			// 	);
+			// 	if (childEvents instanceof FCError) {
+			// 		return childEvents;
+			// 	}
+			// 	events.push(...childEvents);
+			// }
+		}
+		return events;
+	}
+
+    async getEvents(file: TAbstractFile, recursive?: boolean): Promise<EventInput[] | FCError> {
+        let events: EventInput[] = [];
+		//for (let file of abstractFile.children) {
 			if (file instanceof TFile) {				
 				if (file.extension !== "ics") {
                     console.log("LocalIcsSource.getEventInputsFromPath(): File:", file.name, "is not an ics file.")
-                    continue
+                    return events
                 }
-                // console.log("LocalIcsSource.getEventInputsFromPath(): Reading ics file @ path:", eventFolder.path, ", name: ", file.name, ", extension: ", file.extension)
                 let fileContents = await this.vault.cachedRead(file)
-                // console.log("LocalIcsSource.getEventInputsFromPath(): ics file contents: ", fileContents)
 
-                // console.log("LocalIcsSource.getEventInputsFromPath(): expanding ics file contents")
                 let expander = makeICalExpander(fileContents);
                 let iCalEvents = expandICalEventsAll(expander);
-                // console.log("LocalIcsSource.getEventInputsFromPath(): expanded ics events:", iCalEvents)
-
-//                events.push(iCalEvents)
                 for (let event of iCalEvents) {
+                    console.log("LocalIcsSource.getEventInputsFromPath(): event: ", event, "event title:", event.title, "event idForCalendar:", event.identifier, "type of event:", typeof event)
                     events.push(event)
-// //                    if (event) {
-//                     console.log("LocalIcsSource.getEventInputsFromPath(): ics event:", event)
-
-//                         let calEvent = event.toCalendarEvent();
-//                         if (calEvent) {
-//                             events.push(calEvent);
-//                         } else {
-//                             console.error(
-//                                 "FC: Event malformed, will not add to calendar.",
-//                                 event
-//                             );
-//                         }
-//                     // }
                 }
 			} else if (recursive) {
 				const childEvents = await this.getEventInputsFromPath(
@@ -106,7 +125,8 @@ export class LocalIcsSource extends EventSource {
 				}
 				events.push(...childEvents);
 			}
-		}
-		return events;
-	}
+		//}
+        
+        return events
+    }
 }

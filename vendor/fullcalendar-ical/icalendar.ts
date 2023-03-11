@@ -150,20 +150,20 @@ export function expandICalEvents(
 
 	let iCalRes = iCalExpander.between(rangeStart, rangeEnd); // end inclusive. will give extra results
 
-	return processIcalResults(iCalRes);
-}
+// 	return processIcalResults(iCalRes);
+// }
 
-export function expandICalEventsAll(
-	iCalExpander: IcalExpander
-): EventInput[] {
-	let iCalRes = iCalExpander.all(); 
+// export function expandICalEventsAll(
+// 	iCalExpander: IcalExpander
+// ): EventInput[] {
+// 	let iCalRes = iCalExpander.all(); 
 
-	return processIcalResults(iCalRes);
-}
+// 	return processIcalResults(iCalRes);
+// }
 
-export function processIcalResults(
-	iCalRes: IcalExpanderResults
-): EventInput[] {
+// export function processIcalResults(
+// 	iCalRes: IcalExpanderResults
+// ): EventInput[] {
 	let expanded: EventInput[] = [];
 
 	// TODO: instead of using startDate/endDate.toString to communicate allDay,
@@ -206,6 +206,7 @@ function buildNonDateProps(iCalEvent: ICAL.Event): EventInput {
 			organizer: iCalEvent.organizer,
 			description: iCalEvent.description,
 		},
+		id: iCalEvent.uid,
 	};
 }
 
