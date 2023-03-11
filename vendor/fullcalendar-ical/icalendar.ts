@@ -7,7 +7,7 @@ import {
 } from "@fullcalendar/common";
 // @ts-ignore
 import * as ICAL from "ical.js";
-import { IcalExpander, IcalExpanderResults } from "./ical-expander/IcalExpander";
+import { IcalExpander } from "./ical-expander/IcalExpander";
 
 type Success = (rawFeed: string, xhr: XMLHttpRequest) => void;
 type Failure = (error: string, xhr: XMLHttpRequest) => void;
@@ -149,21 +149,6 @@ export function expandICalEvents(
 	let rangeEnd = addDays(range.end, 1);
 
 	let iCalRes = iCalExpander.between(rangeStart, rangeEnd); // end inclusive. will give extra results
-
-	return processIcalResults(iCalRes);
-}
-
-export function expandICalEventsAll(
-	iCalExpander: IcalExpander
-): EventInput[] {
-	let iCalRes = iCalExpander.all(); 
-
-	return processIcalResults(iCalRes);
-}
-
-export function processIcalResults(
-	iCalRes: IcalExpanderResults
-): EventInput[] {
 	let expanded: EventInput[] = [];
 
 	// TODO: instead of using startDate/endDate.toString to communicate allDay,
