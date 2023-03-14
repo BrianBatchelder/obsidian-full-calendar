@@ -80,6 +80,14 @@ export type ICalSource = {
 } & CalendarSourceCommon;
 
 /**
+ * Local calendar with events stored as ics files in a directory.
+ */
+export type LocalIcalSource = {
+	type: "local_ical";
+	directory: string;
+} & CalendarSourceCommon;
+
+/**
  * Auth types. Currently only support Basic, but will probably support OAuth in the future.
  */
 type BasicAuth = {
@@ -116,6 +124,7 @@ export type TestSource = {
 
 export type CalendarInfo =
     | LocalCalendarSource
+    | LocalIcalSource
     | DailyNoteCalendarSource
     | GoogleCalendarSource
     | ICalSource
