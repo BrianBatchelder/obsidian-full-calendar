@@ -15,9 +15,11 @@ export async function eventFromApi(
 	event: EventApi
 ) {
 	const [prefix, ...rest] = event.id.split(CalendarEvent.ID_SEPARATOR);
+	console.log("Event",event,"name",event.constructor.name,"id:", event.id, "prefix:", prefix)
 	switch (prefix) {
 		case ICSEvent.ID_PREFIX:
 		case CalDAVEvent.ID_PREFIX:
+			console.log("ICS Event id:", event.id)
 			throw new FCError(
 				"Cannot create instance of ICS event given its ID."
 			);

@@ -6,6 +6,7 @@ import { getColors } from "./util";
 import { expandICalEvents, makeICalExpander } from "vendor/fullcalendar-ical/icalendar";
 import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 
+// TODO: Refresh calendar on change to file or folder
 export class LocalIcsSource extends EventSource {
 	info: LocalIcalSource;
 	vault: Vault;
@@ -35,6 +36,8 @@ export class LocalIcsSource extends EventSource {
 			// try {
 				let iCalendarObjects = await this.getICalendarObjectsFromFiles(recursive);
 				// console.log("LocalIcsSouce.getExpander(): iCalendarObjects=",iCalendarObjects)
+				// REVISIT: I hate having to manually extract the VEVENTs and build a VCALENDAR. The spec apparently
+				//   allows for multiple VCALENDARs in a single text, but the expander doesn't seem to support it.
 				let iCalendar = "BEGIN:VCALENDAR\n" + iCalendarObjects + "\nEND:VCALENDAR"
 				// console.log("LocalIcsSouce.getExpander(): iCalendar=",iCalendar)
 				let expander = makeICalExpander(iCalendar);

@@ -205,6 +205,7 @@ export class DailyNoteEvent extends LocalEvent {
 		this.removeFromFile();
 	}
 	get identifier(): string {
+		console.log("DailyNoteEvent.identifier() =", `${this.path}${CalendarEvent.ID_SEPARATOR}${this.lineNumber}`)
 		return `${this.path}${CalendarEvent.ID_SEPARATOR}${this.lineNumber}`;
 	}
 	get PREFIX(): string {

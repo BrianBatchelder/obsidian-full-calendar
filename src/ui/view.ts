@@ -21,6 +21,7 @@ import { DateTime } from "luxon";
 import { DailyNoteSource } from "../models/DailyNoteSource";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import { getColors } from "../models/util";
+import { ICSEvent } from "src/models/ICSEvent";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -166,6 +167,7 @@ export class CalendarView extends ItemView {
 		this.calendar = renderCalendar(calendarEl, sources, {
 			forceNarrow: this.inSidebar,
 			eventClick: async (info) => {
+				console.log("Clicked on event:", info.event)
 				if (
 					info.jsEvent.getModifierState("Control") ||
 					info.jsEvent.getModifierState("Meta")
@@ -235,12 +237,18 @@ export class CalendarView extends ItemView {
 			},
 
 			eventMouseEnter: async (info) => {
+				// console.log("Hover over info:", info)
 				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
 					this.plugin.settings,
 					info.event
 				);
+				if (event) {
+					console.log("Hover over event: event.constructor.name =", event.constructor.name)
+				} else {
+					console.log("Hover over event: event is null")
+				}
 				if (event instanceof LocalEvent) {
 					this.app.workspace.trigger("hover-link", {
 						event: info.jsEvent,
@@ -263,6 +271,11 @@ export class CalendarView extends ItemView {
 					this.plugin.settings,
 					e
 				);
+				if (event) {
+					console.log("openContextMenuForEvent(): event.constructor.name =", event.constructor.name)
+				} else {
+					console.log("openContextMenuForEvent(): event is null")
+				}
 				if (event instanceof EditableEvent) {
 					if (!event.isTask) {
 						menu.addItem((item) =>
