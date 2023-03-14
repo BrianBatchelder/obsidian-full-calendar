@@ -115,6 +115,7 @@ export default class EventCache {
     init() {
         this.calendarInfos
             .flatMap((s) => {
+                console.log("s.type =",s.type)
                 const cal = this.calendarInitializers[s.type](s);
                 return cal || [];
             })

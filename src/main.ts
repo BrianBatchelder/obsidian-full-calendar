@@ -43,6 +43,14 @@ export default class FullCalendarPlugin extends Plugin {
                 : null,
         ical: (info) =>
             info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
+        local_ical: (info) =>
+            info.type === "local_ical" ? new LocalIcsCalendar(
+                new ObsidianIO(this.app),
+                info.color,
+                info.directory,
+                this.settings.recursiveLocal
+            )
+          : null,
         gcal: () => null,
         caldav: (info) =>
             info.type === "caldav"
