@@ -13,6 +13,10 @@ const parseTime = (time: string): Duration | null => {
     if (parsed.invalidReason) {
         parsed = DateTime.fromFormat(time, "HH:mm");
     }
+    // if (parsed.invalidReason) {
+    //     parsed = DateTime.fromFormat(time, "HH:mm:ss");
+    //     console.log("interop.parseTime(): Parsed time string =",parsed)
+    // }
 
     if (parsed.invalidReason) {
         console.error(

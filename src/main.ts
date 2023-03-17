@@ -19,6 +19,7 @@ import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
 import ICSCalendar from "./calendars/ICSCalendar";
 import CalDAVCalendar from "./calendars/CalDAVCalendar";
+import LocalICSCalendar from "./calendars/LocalICSCalendar";
 import { debugLog } from "./debug";
 
 export default class FullCalendarPlugin extends Plugin {
@@ -44,7 +45,7 @@ export default class FullCalendarPlugin extends Plugin {
         ical: (info) =>
             info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
         local_ical: (info) =>
-            info.type === "local_ical" ? new LocalIcsCalendar(
+            info.type === "local_ical" ? new LocalICSCalendar(
                 new ObsidianIO(this.app),
                 info.color,
                 info.directory,
