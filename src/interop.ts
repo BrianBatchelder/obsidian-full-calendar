@@ -13,6 +13,10 @@ const parseTime = (time: string): Duration | null => {
     if (parsed.invalidReason) {
         parsed = DateTime.fromFormat(time, "HH:mm");
     }
+    if (parsed.invalidReason) {
+        // time format in some .ics files from Stanza, e.g. https://www.stanza.co/api/schedules/mls-portlandtimbers/mls-portlandtimbers.ics?sub=5f1c55fa7b844e2c5fec3b3b&timestamp=1595692538997
+        parsed = DateTime.fromFormat(time, "HH:mm:ss");
+    }
 
     if (parsed.invalidReason) {
         console.error(
