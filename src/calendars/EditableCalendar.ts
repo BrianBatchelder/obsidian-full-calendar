@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
 import { EventPathLocation } from "src/core/EventStore";
 import { EventLocation, OFCEvent } from "src/types";
-import { Calendar } from "./Calendar";
+import { LocalCalendar } from "./LocalCalendar";
 
 export type EditableEventResponse = [OFCEvent, EventLocation];
 
@@ -13,15 +13,10 @@ export type EditableEventResponse = [OFCEvent, EventLocation];
  * The EventCache will call methods on an EditableCalendar to make updates to the Vault from user action, as well
  * as to parse events from files when the files are updated outside of Full Calendar.
  */
-export abstract class EditableCalendar extends Calendar {
+export abstract class EditableCalendar extends LocalCalendar {
     constructor(color: string) {
         super(color);
     }
-
-    /**
-     * Directory where events for this calendar are stored.
-     */
-    abstract get directory(): string;
 
     /**
      * Returns true if this calendar sources events from the given path.
