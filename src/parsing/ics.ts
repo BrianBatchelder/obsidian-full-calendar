@@ -31,7 +31,7 @@ function specifiesEnd(iCalEvent: ical.Event) {
     );
 }
 
-function icsToOFC(input: ical.Event): OFCEvent {
+function icsToOFC(input: ical.Event, tz: ical.Timezone): OFCEvent {
     if (input.isRecurring()) {
         const rrule = rrulestr(
             input.component.getFirstProperty("rrule").getFirstValue().toString()
@@ -54,29 +54,33 @@ function icsToOFC(input: ical.Event): OFCEvent {
             rrule: rrule.toString(),
             skipDates: exdates,
             startDate: getDate(
-                input.startDate.convertToZone(ical.Timezone.utcTimezone)
+                input.startDate.convertToZone(tz)
             ),
             ...(allDay
                 ? { allDay: true }
                 : {
                       allDay: false,
                       startTime: getTime(
-                          input.startDate.convertToZone(
-                              ical.Timezone.utcTimezone
-                          )
-                      ),
+                          input.startDate.convertToZone(tz)
+                          ),
                       endTime: getTime(
-                          input.endDate.convertToZone(ical.Timezone.utcTimezone)
+                          input.endDate.convertToZone(tz)
                       ),
                   }),
         };
     } else {
-        const date = getDate(input.startDate);
+        const date = getDate(input.startDate.convertToZone(tz));
+        console.log("BDB: ics.icsToOFC(",input.summary,"): start date = ", date, "tz =", tz);
         const endDate =
             specifiesEnd(input) && input.endDate
-                ? getDate(input.endDate)
+                ? getDate(input.endDate.convertToZone(tz))
                 : undefined;
-        const allDay = input.startDate.isDate;
+        console.log("BDB: ics.icsToOFC(",input.summary,"): end date = ", endDate);
+        const allDay = input.startDate.convertToZone(tz).isDate;
+        console.log("BDB: ics.icsToOFC(",input.summary,"): start time = ", input.startDate.convertToZone(tz));
+        console.log("BDB: ics.icsToOFC(",input.summary,"): end time = ", input.endDate.convertToZone(tz));
+        console.log("BDB: ics.icsToOFC(",input.summary,"): start time = ", getTime(input.startDate.convertToZone(tz)));
+        console.log("BDB: ics.icsToOFC(",input.summary,"): end time = ", getTime(input.endDate.convertToZone(tz)));
         return {
             type: "single",
             id: `ics::${input.uid}::${date}::single`,
@@ -87,8 +91,8 @@ function icsToOFC(input: ical.Event): OFCEvent {
                 ? { allDay: true }
                 : {
                       allDay: false,
-                      startTime: getTime(input.startDate),
-                      endTime: getTime(input.endDate),
+                      startTime: getTime(input.startDate.convertToZone(tz)),
+                      endTime: getTime(input.startDate.convertToZone(tz)),
                   }),
         };
     }
@@ -97,17 +101,24 @@ function icsToOFC(input: ical.Event): OFCEvent {
 export function getEventsFromICS(text: string): OFCEvent[] {
     const jCalData = ical.parse(text);
     const component = new ical.Component(jCalData);
+    console.log("BDB: getEventsFromICS(): component:", component)
 
     // TODO: Timezone support
-    // const tzc = component.getAllSubcomponents("vtimezone");
-    // const tz = new ical.Timezone(tzc[0]);
+    const tzc = component.getAllSubcomponents("vtimezone");
+    let tz = ical.Timezone.localTimezone;
+    if (tzc.length > 0) {
+        tz = new ical.Timezone(tzc[0]);
+    }
+    console.log("tz =", tz)
 
     const events: ical.Event[] = component
         .getAllSubcomponents("vevent")
         .map((vevent) => new ical.Event(vevent))
         .filter((evt) => {
+            //console.log("BDB: getEventsFromICS(): summary =", evt.summary, ", startDate =", evt.startDate)
             evt.iterator;
             try {
+                console.log("BDB: getEventsFromICS(): summary =", evt.summary, ", startDate =", evt.startDate)
                 evt.startDate.toJSDate();
                 evt.endDate.toJSDate();
                 return true;
@@ -122,12 +133,12 @@ export function getEventsFromICS(text: string): OFCEvent[] {
     const baseEvents = Object.fromEntries(
         events
             .filter((e) => e.recurrenceId === null)
-            .map((e) => [e.uid, icsToOFC(e)])
+            .map((e) => [e.uid, icsToOFC(e, tz)])
     );
 
     const recurrenceExceptions = events
         .filter((e) => e.recurrenceId !== null)
-        .map((e): [string, OFCEvent] => [e.uid, icsToOFC(e)]);
+        .map((e): [string, OFCEvent] => [e.uid, icsToOFC(e, tz)]);
 
     for (const [uid, event] of recurrenceExceptions) {
         const baseEvent = baseEvents[uid];
