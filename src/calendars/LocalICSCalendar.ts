@@ -101,7 +101,7 @@ export default class LocalICSCalendar extends LocalCalendar {
     }
 
     async getEvents(): Promise<EventResponse[]> {
-        console.log("BDB: LocalICSCalendar.getEvents(): directory =", this.directory)
+        // console.log("BDB: LocalICSCalendar.getEvents(): directory =", this.directory)
         const eventFolder = this.app.getAbstractFileByPath(this.directory);
         if (!eventFolder) {
             throw new Error(`Cannot get folder ${this.directory}`);
@@ -113,7 +113,7 @@ export default class LocalICSCalendar extends LocalCalendar {
         for (const file of eventFolder.children) {
             if (file instanceof TFile) {
                 if (file.extension !== "ics") {
-                    console.log("BDB: LocalIcsSource.getEventInputsFromPath(): File:", file.name, "is not an ics file.")
+                    // console.log("BDB: LocalIcsSource.getEventInputsFromPath(): File:", file.name, "is not an ics file.")
                     continue
                 }
                 const results = await this.getEventsInFile(file);

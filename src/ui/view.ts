@@ -81,6 +81,7 @@ export class CalendarView extends ItemView {
     }
 
     translateSources() {
+        // console.log("BDB: interop.translateSources()")
         return this.plugin.cache.getAllEvents().map(
             ({ events, editable, color, id }): EventSourceInput => ({
                 id,
@@ -94,7 +95,7 @@ export class CalendarView extends ItemView {
     }
 
     async onOpen() {
-        console.log("BDB: CalendarView.onOpen()")
+        // console.log("BDB: CalendarView.onOpen()")
         await this.plugin.loadSettings();
         if (!this.plugin.cache) {
             new Notice("Full Calendar event cache not loaded.");

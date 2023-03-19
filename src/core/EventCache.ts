@@ -140,7 +140,7 @@ export default class EventCache {
             this.init();
         }
         for (const calendar of this.calendars.values()) {
-            console.log("BDB: EventCache.populate(): calendar =", calendar.name)
+            // console.log("BDB: EventCache.populate(): calendar =", calendar.name)
             const results = await calendar.getEvents();
             results.forEach(([event, location]) =>
                 this.store.add({
@@ -527,7 +527,7 @@ export default class EventCache {
      * is available for any remote calendar, its data will be updated in the cache and any subscribing views.
      */
     revalidateRemoteCalendars(force = false) {
-        console.log("BDB: EventCache.revalidateRemoteCalendars()")
+        // console.log("BDB: EventCache.revalidateRemoteCalendars()")
         if (this.revalidating) {
             console.warn("Revalidation already in progress.");
             return;
