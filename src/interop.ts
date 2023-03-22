@@ -208,8 +208,6 @@ export function toEventInput(
                 }
             }
 
-            // console.log("BDB: interop.toEventInput(",event.title,") single event:", { start, end, event })
-
             event = {
                 ...event,
                 start,

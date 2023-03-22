@@ -71,19 +71,12 @@ function icsToOFC(input: ical.Event): OFCEvent {
                   }),
         };
     } else {
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): start date = ", input.startDate);
         const date = getDate(input.startDate);
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): start date after tz conversion = ", startDate);
         const endDate =
             specifiesEnd(input) && input.endDate
                 ? getDate(input.endDate)
                 : undefined;
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): end date = ", endDate);
         const allDay = input.startDate.isDate;
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): start time = ", input.startDate);
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): end time = ", input.endDate);
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): start time = ", getTime(input.startDate));
-        // console.log("BDB: ics.icsToOFC(",input.summary,"): end time = ", getTime(input.endDate));
         return {
             type: "single",
             id: `ics::${input.uid}::${date}::single`,
@@ -102,10 +95,8 @@ function icsToOFC(input: ical.Event): OFCEvent {
 }
 
 export function getEventsFromICS(text: string): OFCEvent[] {
-    // console.log("BDB: getEventsFromICS(): text:", text)
     const jCalData = ical.parse(text);
     const component = new ical.Component(jCalData);
-    // console.log("BDB: getEventsFromICS(): component:", component)
 
     // TODO: Timezone support
     // const tzc = component.getAllSubcomponents("vtimezone");
@@ -115,10 +106,8 @@ export function getEventsFromICS(text: string): OFCEvent[] {
         .getAllSubcomponents("vevent")
         .map((vevent) => new ical.Event(vevent))
         .filter((evt) => {
-            //console.log("BDB: getEventsFromICS(): summary =", evt.summary, ", startDate =", evt.startDate)
             evt.iterator;
             try {
-                // console.log("BDB: getEventsFromICS(): summary =", evt.summary, ", startDate =", evt.startDate, "endDate =", evt.endDate)
                 evt.startDate.toJSDate();
                 evt.endDate.toJSDate();
                 return true;
